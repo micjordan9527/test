@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>U.GAME - TG群组推送管理</title>
+  <style>
+    :root{
+      --blue:#1d6fff;
+      --blue-2:#0f5fe8;
+      --green:#21c45d;
+      --red:#ff4d4f;
+      --orange:#ff9f1a;
+      --text:#202633;
+      --muted:#7b8494;
+      --line:#e8edf5;
+      --bg:#f5f7fb;
+      --card:#fff;
+      --shadow:0 10px 30px rgba(18,38,63,.06);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",Arial,sans-serif;font-size:14px}
+    .layout{min-height:100vh;display:flex;flex-direction:column}
+    .topbar{height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:10}
+    .brand{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;letter-spacing:.2px;color:#13213a}
+    .brand-mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#48dc4f,#3ac7ff);position:relative}
+    .brand-mark:before,.brand-mark:after{content:"";position:absolute;background:#fff;border-radius:50%}
+    .brand-mark:before{width:9px;height:9px;left:7px;top:7px}.brand-mark:after{width:9px;height:9px;right:7px;bottom:7px}
+    .nav{display:flex;align-items:center;gap:18px;margin-left:22px;flex:1}
+    .nav span{display:flex;align-items:center;gap:6px;color:#111827;font-weight:600;white-space:nowrap}
+    .nav .active{color:var(--blue)}
+    .user{display:flex;align-items:center;gap:14px;color:#667085;font-size:13px}.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#d2f8ff,#21c45d);display:grid;place-items:center;color:#fff;font-weight:900}
+    .tabs{height:42px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:18px}.tab{height:42px;display:flex;align-items:center;gap:6px;color:#5c6677}.tab.active{color:var(--blue);border-bottom:2px solid var(--blue)}
+    .main{padding:22px 28px 36px}.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px}.title h1{font-size:22px;margin:0 0 8px}.title p{margin:0;color:var(--muted);line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border:1px solid var(--line);background:#fff;color:#334155;height:36px;padding:0 14px;border-radius:8px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}.btn:hover{border-color:#b8c7da}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:var(--blue-2)}.btn.danger{color:var(--red);border-color:#ffd9d9;background:#fff7f7}.btn.ghost{background:transparent}.btn.small{height:30px;padding:0 10px;font-size:12px}.btn[disabled]{opacity:.45;cursor:not-allowed}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border-bottom:1px solid var(--line)}.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.input,.select,.textarea{border:1px solid #dbe3ef;border-radius:8px;background:#fff;color:#1f2937;outline:none}.input,.select{height:36px;padding:0 11px}.input:focus,.select:focus,.textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,111,255,.08)}.textarea{width:100%;min-height:112px;resize:vertical;padding:11px;line-height:1.6}.search{width:260px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:1120px}.table th{background:#fafcff;color:#667085;text-align:left;font-weight:700;border-bottom:1px solid var(--line);padding:12px 14px;white-space:nowrap}.table td{border-bottom:1px solid var(--line);padding:14px;vertical-align:middle}.table tr:hover td{background:#fbfdff}.name-cell{display:flex;align-items:center;gap:12px}.thumb{width:52px;height:42px;border-radius:8px;background:linear-gradient(135deg,#e9f2ff,#dff7ff);border:1px solid #d8e5f5;display:grid;place-items:center;color:var(--blue);font-weight:800;overflow:hidden;flex:none}.thumb img{width:100%;height:100%;object-fit:cover}.name-main{font-weight:800}.name-sub{color:#8a94a6;font-size:12px;margin-top:5px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.badge{display:inline-flex;align-items:center;height:24px;border-radius:999px;padding:0 9px;font-weight:700;font-size:12px;white-space:nowrap}.badge.blue{background:#eaf2ff;color:#1d6fff}.badge.green{background:#eafaf0;color:#16a34a}.badge.orange{background:#fff5e5;color:#d97706}.badge.gray{background:#f1f5f9;color:#64748b}.badge.red{background:#fff1f2;color:#e11d48}.status{display:inline-flex;align-items:center;gap:6px;font-weight:800}.dot{width:7px;height:7px;border-radius:50%;background:var(--green)}.status.off .dot{background:#94a3b8}.operate{display:flex;gap:8px;white-space:nowrap}
+    .empty{display:none;padding:44px 20px;text-align:center;color:#8290a3}.empty .icon{font-size:42px;margin-bottom:8px}.empty.show{display:block}.hide{display:none!important}
+    .form-grid{display:grid;grid-template-columns:1fr;gap:18px}.section{padding:18px}.section+.section{border-top:1px solid var(--line)}.section-title{font-size:16px;font-weight:900;margin:0 0 16px;display:flex;align-items:center;gap:8px}.section-title:before{content:"";width:4px;height:16px;border-radius:2px;background:var(--blue)}.form-row{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:flex-start;margin-bottom:16px}.form-row:last-child{margin-bottom:0}.label{height:36px;display:flex;align-items:center;justify-content:flex-end;color:#4b5563;font-weight:700}.required:before{content:"*";color:var(--red);margin-right:4px}.hint{color:#8b95a7;font-size:12px;margin-top:7px;line-height:1.5}.radio-group{display:flex;gap:10px;flex-wrap:wrap}.radio-card{border:1px solid #dbe3ef;border-radius:10px;padding:12px 14px;min-width:174px;cursor:pointer;background:#fff}.radio-card input{margin-right:6px}.radio-card.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,111,255,.08);background:#f7fbff}.radio-title{font-weight:900}.radio-desc{font-size:12px;color:#8390a3;margin-top:6px;line-height:1.45}.switch{position:relative;display:inline-block;width:44px;height:24px}.switch input{opacity:0;width:0;height:0}.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;transition:.2s;border-radius:999px}.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.2s;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.22)}.switch input:checked+.slider{background:var(--blue)}.switch input:checked+.slider:before{transform:translateX(20px)}.upload-zone{border:1px dashed #b9c6d9;border-radius:12px;background:#fbfdff;padding:18px;text-align:center;min-height:130px;display:grid;place-items:center}.upload-zone.drag{border-color:var(--blue);background:#f3f8ff}.upload-preview{max-width:100%;max-height:220px;border-radius:10px;border:1px solid var(--line);display:none}.upload-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}.datetime-combo{display:inline-flex;align-items:center;gap:8px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;padding:6px 8px;min-height:42px;flex-wrap:wrap}.datetime-combo:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,111,255,.08)}.datetime-combo .select{height:30px;border-color:transparent;background:#f8fafc;padding:0 8px}.datetime-combo .select:focus{border-color:var(--blue);box-shadow:none;background:#fff}.datetime-combo span{color:#64748b;font-weight:700}.datetime-combo select:disabled{opacity:.55}.datetime-single{min-width:260px}.weekdays{display:flex;gap:8px;flex-wrap:wrap}.weekday{height:32px;min-width:44px;border:1px solid #dbe3ef;background:#fff;border-radius:8px;cursor:pointer;font-weight:700;color:#586275}.weekday.active{background:var(--blue);border-color:var(--blue);color:#fff}.form-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--line);background:#fbfdff;border-radius:0 0 var(--radius) var(--radius)}
+    .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.4);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal-mask.show{display:flex}.modal{width:min(520px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.22);overflow:hidden}.modal-hd{padding:16px 18px;border-bottom:1px solid var(--line);font-size:16px;font-weight:900}.modal-bd{padding:18px;color:#4b5563;line-height:1.7}.modal-ft{padding:14px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;background:#fbfdff}.toast{position:fixed;top:82px;right:28px;background:#111827;color:#fff;border-radius:10px;padding:11px 14px;box-shadow:0 8px 25px rgba(0,0,0,.18);transform:translateY(-16px);opacity:0;pointer-events:none;transition:.25s;z-index:80}.toast.show{opacity:1;transform:translateY(0)}
+
+    .main.delivery-main{padding:18px 22px 30px;display:grid;grid-template-columns:minmax(880px,1fr) 380px;gap:18px;align-items:start}
+    .prototype-panel{min-width:0}
+    .requirement-panel{position:sticky;top:118px;max-height:calc(100vh - 136px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 18px 20px;color:#334155}
+    .req-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px}
+    .req-kicker{display:inline-flex;align-items:center;height:24px;border-radius:999px;padding:0 9px;background:#eaf2ff;color:#1d6fff;font-size:12px;font-weight:800;margin-bottom:10px}
+    .req-title{font-size:18px;font-weight:900;color:#111827;margin:0 0 8px}.req-desc{margin:0;color:#64748b;line-height:1.6;font-size:13px}
+    .req-section{padding:12px 0;border-bottom:1px dashed #e2e8f0}.req-section:last-child{border-bottom:0;padding-bottom:0}.req-section h3{font-size:14px;margin:0 0 8px;color:#111827;display:flex;align-items:center;gap:6px}.req-section h3:before{content:"";width:4px;height:14px;border-radius:2px;background:var(--blue)}
+    .req-section p{margin:0 0 8px;color:#475569;line-height:1.65;font-size:13px}.req-section ul{margin:0;padding-left:18px}.req-section li{margin:5px 0;line-height:1.55;color:#475569;font-size:13px}.req-note{border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;padding:10px;margin-top:8px;color:#475569;font-size:13px;line-height:1.6}.req-code{font-family:Menlo,Consolas,monospace;background:#0f172a;color:#e2e8f0;border-radius:8px;padding:9px 10px;margin:8px 0;font-size:12px;line-height:1.5;white-space:pre-wrap}.req-priority{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.req-pill{display:inline-flex;align-items:center;height:24px;border-radius:999px;background:#f1f5f9;color:#334155;font-size:12px;font-weight:800;padding:0 9px}.req-arrow{color:#94a3b8;font-weight:900}
+    @media (max-width:1320px){.main.delivery-main{grid-template-columns:1fr}.requirement-panel{position:static;max-height:none}.prototype-panel{min-width:0}}
+    @media (max-width:1100px){.nav{gap:10px}.nav span:not(.active){display:none}.form-grid{grid-template-columns:1fr}.search{width:190px}}@media (max-width:760px){.topbar{padding:0 14px}.brand{font-size:20px}.user .time{display:none}.tabs{padding:0 14px}.main{padding:16px}.page-head{display:block}.actions{margin-top:12px}.toolbar{display:block}.filters{margin-bottom:12px}.form-row{grid-template-columns:1fr}.label{justify-content:flex-start;height:auto}.two-col{grid-template-columns:1fr}.radio-card{min-width:100%}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;min-width:0;flex:1">
+        <div class="brand"><span class="brand-mark"></span><span>U.GAME</span></div>
+        <nav class="nav">
+          <span>⌂ 首页</span><span>♙ 会员</span><span>♙ 代理</span><span>♣ 优惠</span><span>▥ 运营</span><span>🚀 游戏</span><span>🛡 财务</span><span>▣ 报表</span><span>🛡 风控</span><span>⚙ 系统</span><span class="active">▣ TGBot管理</span>
+        </nav>
+      </div>
+      <div class="user"><span class="time" id="nowText">2026-06-24 14:27:46（美东时间）</span><span class="avatar">xy</span><span>xyyy⌄</span></div>
+    </header>
+    <div class="tabs"><span class="tab">首页 ×</span><span class="tab">会员列表 ×</span><span class="tab">提款审核 ×</span><span class="tab active">TGBot管理 ×</span></div>
+
+    <main class="main delivery-main">
+      <div class="prototype-panel">
+      <section id="listPage">
+        <div class="page-head">
+          <div class="title">
+            <h1>TG群组推送管理</h1>
+            <p>统一维护 TG 群组推送图片、文案和推送规则。</p>
+          </div>
+          <div class="actions">
+            <button class="btn primary" onclick="openForm()">＋ 新增推送</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="toolbar">
+            <div class="filters">
+              <input id="searchInput" class="input search" placeholder="搜索推送文案" oninput="renderList()" />
+              <select id="typeFilter" class="select" onchange="renderList()">
+                <option value="">全部推送类型</option>
+                <option value="join">新用户进群推送</option>
+                <option value="interval">每10分钟自动推送</option>
+                <option value="custom">自定义时间推送</option>
+              </select>
+              <select id="statusFilter" class="select" onchange="renderList()">
+                <option value="">全部状态</option>
+                <option value="enabled">启用</option>
+                <option value="disabled">停用</option>
+              </select>
+            </div>
+            <div style="color:#8a94a6;font-size:13px">共 <b id="totalCount">0</b> 条配置</div>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>推送内容</th>
+                  <th>推送类型</th>
+                  <th>推送规则</th>
+                  <th>状态</th>
+                  <th>上次推送时间</th>
+                  <th>下次推送时间</th>
+                  <th>创建人 / 更新时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="pushTableBody"></tbody>
+            </table>
+            <div id="emptyBox" class="empty"><div class="icon">📭</div><div>暂无推送配置，请点击「新增推送」创建。</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="formPage" class="hide">
+        <div class="page-head">
+          <div class="title">
+            <h1 id="formTitle">新增推送</h1>
+            <p>后台可维护推送图片、文案和推送规则。</p>
+          </div>
+          <div class="actions"><button class="btn" onclick="backToList()">返回列表</button></div>
+        </div>
+        <div class="form-grid">
+          <div class="card">
+            <form id="pushForm" onsubmit="saveTask(event)">
+              <input type="hidden" id="taskId" />
+              <div class="section">
+                <h2 class="section-title">基础信息</h2>
+                <div class="form-row">
+                  <label class="label required">推送类型</label>
+                  <div class="radio-group" id="typeCards">
+                    <label class="radio-card active"><input type="radio" name="pushType" value="join" checked onchange="updateTypeUI()"/><span class="radio-title">新用户进群推送</span><div class="radio-desc">用户加入群组后自动推送一次</div></label>
+                    <label class="radio-card"><input type="radio" name="pushType" value="interval" onchange="updateTypeUI()"/><span class="radio-title">每10分钟自动推送</span><div class="radio-desc">系统固定每10分钟推送一次</div></label>
+                    <label class="radio-card"><input type="radio" name="pushType" value="custom" onchange="updateTypeUI()"/><span class="radio-title">自定义时间推送</span><div class="radio-desc">支持单次、每日、每周重复</div></label>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label class="label">启用状态</label>
+                  <div style="height:36px;display:flex;align-items:center;gap:10px"><label class="switch"><input id="taskStatus" type="checkbox" checked /><span class="slider"></span></label><span id="statusText">启用后按规则进行推送</span></div>
+                </div>
+              </div>
+
+              <div class="section">
+                <h2 class="section-title">推送内容</h2>
+                <div class="form-row">
+                  <label class="label">推送图片</label>
+                  <div>
+                    <div id="uploadZone" class="upload-zone">
+                      <div id="uploadPlaceholder">
+                        <div style="font-size:34px;margin-bottom:8px">🖼️</div>
+                        <div style="font-weight:800">点击上传运营图片</div>
+                        <div class="hint">建议尺寸：750 × 600px，支持 JPG / PNG / WebP</div>
+                        <div class="upload-actions"><button type="button" class="btn small" onclick="document.getElementById('imageInput').click()">选择图片</button><button type="button" class="btn small" onclick="useSampleImage()">使用示例图</button></div>
+                      </div>
+                      <img id="imagePreview" class="upload-preview" alt="推送图片预览" />
+                    </div>
+                    <input id="imageInput" type="file" accept="image/*" style="display:none" onchange="handleImageUpload(event)" />
+                    <div class="upload-actions" id="imageTools" style="display:none"><button type="button" class="btn small" onclick="document.getElementById('imageInput').click()">更换图片</button><button type="button" class="btn small danger" onclick="clearImage()">清除图片</button></div>
+                    <input id="imageData" type="hidden" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label class="label required">推送文案</label>
+                  <div><textarea id="copyText" class="textarea" maxlength="300" placeholder="请输入 TG 群组内展示的推送文案" oninput="updatePreview()" required>热门赛事，全程同步｜全球赛事，一站覆盖｜实时赔率变化｜盘口即时更新｜⚽体育新体验，尽在 U.GAME⚽</textarea><div class="hint"><span id="copyCount">0</span>/300，支持换行，保存后在 TG 消息图片下方展示。</div></div>
+                </div>
+              </div>
+
+              <div class="section">
+                <h2 class="section-title">推送规则</h2>
+                <div id="ruleJoin" class="rule-box">
+                  <div class="form-row"><label class="label">触发条件</label><div><div class="input" style="display:flex;align-items:center;background:#f8fafc;color:#64748b">新用户加入 TG 群组后自动推送</div><div class="hint">同一用户每次触发进群事件时，按当前启用配置推送。</div></div></div>
+                </div>
+                <div id="ruleInterval" class="rule-box hide">
+                  <div class="form-row"><label class="label">推送频率</label><div><div class="input" style="display:flex;align-items:center;background:#f8fafc;color:#64748b">每隔 10 分钟自动推送一次</div><div class="hint">间隔固定为10分钟，不在后台配置，便于统一运营节奏。</div></div></div>
+                </div>
+                <div id="ruleCustom" class="rule-box hide">
+                  <div class="form-row">
+                    <label class="label required">推送方式</label>
+                    <div class="radio-group">
+                      <label class="radio-card active"><input type="radio" name="scheduleMode" value="once" checked onchange="updateScheduleUI()"/><span class="radio-title">单次推送</span><div class="radio-desc">选择一个具体日期时间，只推送一次</div></label>
+                      <label class="radio-card"><input type="radio" name="scheduleMode" value="daily" onchange="updateScheduleUI()"/><span class="radio-title">每日重复</span><div class="radio-desc">每天固定时间推送</div></label>
+                      <label class="radio-card"><input type="radio" name="scheduleMode" value="weekly" onchange="updateScheduleUI()"/><span class="radio-title">每周重复</span><div class="radio-desc">选择每周几和固定时间推送</div></label>
+                    </div>
+                  </div>
+                  <div id="onceFields" class="form-row">
+                    <label class="label required">推送时间</label>
+                    <div>
+                      <input id="onceDateTime" class="input datetime-single" type="datetime-local" step="60" style="width:260px" onchange="updateOnceDateTimeMin(false)" />
+                      <div class="hint">请选择年月日时分；单次推送时间不能早于当前时间。</div>
+                    </div>
+                  </div>
+                  <div id="dailyFields" class="form-row hide">
+                    <label class="label required">每日时间</label>
+                    <div>
+                      <input id="dailyTime" class="input" type="time" style="width:160px" value="10:00" />
+                      <div class="hint">每天到达该时间后自动推送。</div>
+                    </div>
+                  </div>
+                  <div id="weeklyFields" class="hide">
+                    <div class="form-row">
+                      <label class="label required">每周几</label>
+                      <div class="weekdays" id="weekdayBox">
+                        <button type="button" class="weekday" data-day="1">周一</button>
+                        <button type="button" class="weekday" data-day="2">周二</button>
+                        <button type="button" class="weekday" data-day="3">周三</button>
+                        <button type="button" class="weekday" data-day="4">周四</button>
+                        <button type="button" class="weekday" data-day="5">周五</button>
+                        <button type="button" class="weekday" data-day="6">周六</button>
+                        <button type="button" class="weekday" data-day="0">周日</button>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <label class="label required">每周时间</label>
+                      <div>
+                        <input id="weeklyTime" class="input" type="time" style="width:160px" value="10:00" />
+                        <div class="hint">可选择多个星期，系统按所选星期和时间重复推送。</div>
+                      </div>
+                    </div>
+                  </div>
+                </div></div>
+
+              <div class="form-footer"><button type="button" class="btn" onclick="backToList()">取消</button><button type="submit" class="btn primary">保存</button></div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      </div>
+
+      <aside class="requirement-panel">
+        <div class="req-head">
+          <div class="req-kicker">开发交付说明</div>
+          <h2 class="req-title">TG群组消息推送功能需求</h2>
+          <p class="req-desc">左侧为后台可交互设计图，右侧为开发实现规则。右侧内容仅用于评审和开发理解，不需要做到正式后台页面中。</p>
+        </div>
+
+        <div class="req-section">
+          <h3>一、功能目的</h3>
+          <p>运营可在后台维护 TG 群组推送图片、文案和推送规则，避免每次修改都需要后端发版。</p>
+        </div>
+
+        <div class="req-section">
+          <h3>二、推送范围</h3>
+          <p>默认推送到全部 TG 群组，本期不支持选择指定群组。</p>
+        </div>
+
+        <div class="req-section">
+          <h3>三、推送内容</h3>
+          <ul>
+            <li>推送图片：支持 JPG / PNG / WebP，可更换、清除。</li>
+            <li>推送文案：必填，最多 300 字，支持换行。</li>
+            <li>TG 消息下方按钮保持现有固定按钮逻辑，不在后台维护。</li>
+          </ul>
+        </div>
+
+        <div class="req-section">
+          <h3>四、推送类型</h3>
+          <ul>
+            <li>新用户进群推送：用户加入 TG 群组后自动触发。</li>
+            <li>每10分钟自动推送：系统固定每 10 分钟推送一次，不支持后台修改间隔。</li>
+            <li>自定义时间推送：支持单次推送、每日重复、每周重复。</li>
+          </ul>
+        </div>
+
+        <div class="req-section">
+          <h3>五、自定义时间规则</h3>
+          <ul>
+            <li>单次推送：选择年月日时分，只推送一次，不能选择当前时间之前的时间。</li>
+            <li>每日重复：每天固定时分推送。</li>
+            <li>每周重复：支持选择一个或多个星期，并设置固定时分推送。</li>
+          </ul>
+        </div>
+
+        <div class="req-section">
+          <h3>六、推送优先级</h3>
+          <div class="req-priority">
+            <span class="req-pill">自定义时间推送</span><span class="req-arrow">&gt;</span>
+            <span class="req-pill">每10分钟自动推送</span><span class="req-arrow">&gt;</span>
+            <span class="req-pill">新用户进群推送</span>
+          </div>
+          <div class="req-note">同一分钟内最多发送一条系统运营推送，避免 TG 群组短时间刷屏。</div>
+        </div>
+
+        <div class="req-section">
+          <h3>七、冲突处理</h3>
+          <ul>
+            <li>自定义推送与每10分钟推送同一分钟触发时，优先发送自定义推送。</li>
+            <li>被跳过的每10分钟推送不补发，下一轮正常执行。</li>
+            <li>同一时间点不允许存在多条启用中的自定义推送任务。</li>
+            <li>停用任务不参与推送，也不参与时间冲突校验。</li>
+          </ul>
+          <div class="req-code">冲突提示：当前时间已存在启用中的推送任务，请更换推送时间或停用原任务后再保存。</div>
+        </div>
+
+        <div class="req-section">
+          <h3>八、新用户进群防刷屏</h3>
+          <ul>
+            <li>同一 TG 群组内，新用户进群推送设置 60 秒冷却时间。</li>
+            <li>60 秒内多个用户进群，只推送一次欢迎消息。</li>
+            <li>如与系统运营推送同时触发，优先执行系统运营推送，进群推送不补发。</li>
+          </ul>
+        </div>
+
+        <div class="req-section">
+          <h3>九、保存校验</h3>
+          <ul>
+            <li>推送类型、推送文案不能为空。</li>
+            <li>单次推送时间不能为空，且不能早于当前时间。</li>
+            <li>每日重复时，每日时间不能为空。</li>
+            <li>每周重复时，至少选择一个星期，且每周时间不能为空。</li>
+            <li>启用中的自定义推送任务不能存在时间冲突。</li>
+          </ul>
+        </div>
+
+        <div class="req-section">
+          <h3>十、开发注意</h3>
+          <ul>
+            <li>配置修改后，后续推送必须使用最新配置内容。</li>
+            <li>删除配置后，对应推送任务停止执行，历史推送记录不受影响。</li>
+            <li>推送失败需记录失败原因，便于排查。</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="confirmModal" class="modal-mask">
+    <div class="modal"><div class="modal-hd" id="modalTitle">确认操作</div><div class="modal-bd" id="modalBody">确认执行该操作吗？</div><div class="modal-ft"><button class="btn" onclick="closeModal()">取消</button><button class="btn danger" id="modalOkBtn">确认</button></div></div>
+  </div>
+  <div id="toast" class="toast">已保存</div>
+
+<script>
+(function(){
+  const sampleSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="750" height="600" viewBox="0 0 750 600"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f5fbff"/><stop offset="0.48" stop-color="#dff1ff"/><stop offset="1" stop-color="#ffffff"/></linearGradient><linearGradient id="b" x1="0" x2="1"><stop stop-color="#0e64df"/><stop offset="1" stop-color="#1f8cff"/></linearGradient></defs><rect width="750" height="600" fill="url(#g)"/><circle cx="120" cy="440" r="86" fill="#fff" stroke="#1d6fff" stroke-width="10"/><path d="M120 370l58 42-22 70H84l-22-70z" fill="#1d6fff" opacity=".88"/><path d="M520 140c55 0 96 45 86 105-8 50-43 84-86 84s-78-34-86-84c-10-60 31-105 86-105z" fill="#f6c744" stroke="#d39b17" stroke-width="10"/><rect x="453" y="325" width="136" height="92" rx="16" fill="#115fd6"/><text x="521" y="382" text-anchor="middle" font-size="30" font-family="Arial" font-weight="700" fill="#fff">U.GAME</text><text x="375" y="128" text-anchor="middle" font-size="76" font-family="Arial" font-weight="900" fill="#0e64df">U.GAME</text><text x="375" y="218" text-anchor="middle" font-size="82" font-family="Arial" font-weight="900" fill="#0e64df">世界杯</text><rect x="165" y="255" width="420" height="54" rx="27" fill="#fff" stroke="#73b6ff"/><text x="375" y="291" text-anchor="middle" font-size="30" font-family="Arial" font-weight="800" fill="#0e64df">2026 美加墨世界杯合作品牌</text><rect x="205" y="340" width="340" height="64" rx="15" fill="url(#b)"/><text x="375" y="383" text-anchor="middle" font-size="36" font-family="Arial" font-weight="900" fill="#fff">玩U投　上UGAME</text><rect x="0" y="495" width="750" height="105" fill="#0e64df" opacity=".1"/></svg>`;
+  window.SAMPLE_IMAGE = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sampleSvg);
+})();
+const typeMap = {
+  join:{text:'新用户进群推送',badge:'green',short:'新用户进群'},
+  interval:{text:'每10分钟自动推送',badge:'orange',short:'每10分钟'},
+  custom:{text:'自定义时间推送',badge:'blue',short:'自定义时间'}
+};
+const weekdayMap = {'1':'周一','2':'周二','3':'周三','4':'周四','5':'周五','6':'周六','0':'周日'};
+const storageKey = 'ugame_tg_group_push_tasks_v2';
+let tasks = [];
+let pendingAction = null;
+function pad(n){return String(n).padStart(2,'0')}
+function nowString(){const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
+function formatDateTimeLocal(v){if(!v)return '-';return v.replace('T',' ')}
+function parseLocalDateTime(v){if(!v)return null;const [date,time]=v.split('T');if(!date||!time)return null;const [y,m,d]=date.split('-').map(Number);const [h,min]=time.split(':').map(Number);const dt=new Date(y,m-1,d,h,min,0,0);return isNaN(dt.getTime())?null:dt;}
+function localDateTimeValue(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;}
+function minOnceDate(){const d=new Date();d.setSeconds(0,0);return d;}
+function daysInMonth(y,m){return new Date(y,m,0).getDate();}
+function buildSelect(id,start,end,value,disabledFn){const el=document.getElementById(id);if(!el)return;el.innerHTML='';for(let i=start;i<=end;i++){const opt=document.createElement('option');opt.value=String(i);opt.textContent=pad(i);if(disabledFn&&disabledFn(i))opt.disabled=true;el.appendChild(opt);}el.value=String(value);}
+function getOncePickerParts(){const now=minOnceDate();let base=parseLocalDateTime(document.getElementById('onceDateTime').value)||now;let y=Number(document.getElementById('onceYear').value)||base.getFullYear();let m=Number(document.getElementById('onceMonth').value)||base.getMonth()+1;let d=Number(document.getElementById('onceDay').value)||base.getDate();let h=Number(document.getElementById('onceHour').value);if(Number.isNaN(h))h=base.getHours();let mi=Number(document.getElementById('onceMinute').value);if(Number.isNaN(mi))mi=base.getMinutes();return {y,m,d,h,mi};}
+function updateOnceDateTimeMin(adjustValue=true){
+  const el=document.getElementById('onceDateTime');
+  if(!el)return;
+  const minValue=localDateTimeValue(minOnceDate());
+  el.min=minValue;
+  if(adjustValue && (!el.value || onceTimeIsBeforeNow(el.value))){
+    el.value=minValue;
+  }
+}
+function refreshOncePicker(value){
+  const el=document.getElementById('onceDateTime');
+  if(!el)return;
+  if(value)el.value=value;
+  updateOnceDateTimeMin(true);
+}
+function onceTimeIsBeforeNow(v){const dt=parseLocalDateTime(v);if(!dt)return true;return dt.getTime()<minOnceDate().getTime();}
+function genId(){return 'tg_' + Date.now() + '_' + Math.floor(Math.random()*1000)}
+function demoTasks(){
+  const copy='热门赛事，全程同步｜全球赛事，一站覆盖｜实时赔率变化｜盘口即时更新｜⚽体育新体验，尽在 U.GAME⚽';
+  return [
+    {id:genId(),type:'join',status:'enabled',copy,image:window.SAMPLE_IMAGE,rule:{mode:'join'},lastPush:'-',nextPush:'用户进群时触发',creator:'xyyy',updatedAt:nowString()},
+    {id:genId(),type:'interval',status:'enabled',copy,image:window.SAMPLE_IMAGE,rule:{mode:'interval'},lastPush:'2026-06-25 14:20:00',nextPush:'2026-06-25 14:30:00',creator:'xyyy',updatedAt:nowString()},
+    {id:genId(),type:'custom',status:'disabled',copy:'每日活动准时更新，热门赛事一站覆盖，立即进入 U.GAME 查看最新盘口。',image:'',rule:{mode:'daily',time:'10:00'},lastPush:'-',nextPush:'停用中',creator:'xyyy',updatedAt:nowString()}
+  ];
+}
+function loadTasks(){try{tasks=JSON.parse(localStorage.getItem(storageKey)||'[]')}catch(e){tasks=[]} if(!tasks.length){tasks=demoTasks();saveStorage();}}
+function saveStorage(){localStorage.setItem(storageKey,JSON.stringify(tasks));}
+function getRuleText(t){
+  if(t.type==='join')return '用户加入TG群组后自动推送';
+  if(t.type==='interval')return '固定每10分钟推送一次';
+  const r=t.rule||{};
+  if(r.mode==='once')return '单次推送：' + formatDateTimeLocal(r.datetime);
+  if(r.mode==='daily')return '每日重复：每天 ' + (r.time||'-');
+  if(r.mode==='weekly')return '每周重复：' + ((r.weekdays||[]).map(d=>weekdayMap[d]).join('、')||'-') + ' ' + (r.time||'-');
+  return '-';
+}
+function calcNextPush(t){
+  if(t.status==='disabled')return '停用中';
+  if(t.type==='join')return '用户进群时触发';
+  if(t.type==='interval')return '10分钟后';
+  const r=t.rule||{};
+  if(r.mode==='once')return formatDateTimeLocal(r.datetime);
+  if(r.mode==='daily')return '今天/明天 ' + (r.time||'-');
+  if(r.mode==='weekly')return '下个所选星期 ' + (r.time||'-');
+  return '-';
+}
+function renderList(){
+  const q=(document.getElementById('searchInput').value||'').trim().toLowerCase();
+  const type=document.getElementById('typeFilter').value;
+  const status=document.getElementById('statusFilter').value;
+  const list=tasks.filter(t=>{
+    const hit=!q || (t.copy||'').toLowerCase().includes(q);
+    return hit && (!type||t.type===type) && (!status||t.status===status);
+  });
+  document.getElementById('totalCount').textContent=list.length;
+  const tbody=document.getElementById('pushTableBody');
+  tbody.innerHTML='';
+  document.getElementById('emptyBox').classList.toggle('show',list.length===0);
+  list.forEach(t=>{
+    const tm=typeMap[t.type]||typeMap.join;
+    const img=t.image?`<img src="${t.image}" alt="thumb">`:'图';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><div class="name-cell"><div class="thumb">${img}</div><div><div class="name-main">${escapeHtml(getContentTitle(t))}</div><div class="name-sub">${escapeHtml(t.copy||'-')}</div></div></div></td>
+      <td><span class="badge ${tm.badge}">${tm.text}</span></td>
+      <td>${escapeHtml(getRuleText(t))}</td>
+      <td><span class="status ${t.status==='enabled'?'':'off'}"><i class="dot"></i>${t.status==='enabled'?'启用':'停用'}</span></td>
+      <td>${escapeHtml(t.lastPush||'-')}</td>
+      <td>${escapeHtml(t.nextPush||calcNextPush(t))}</td>
+      <td><div>${escapeHtml(t.creator||'xyyy')}</div><div style="color:#8a94a6;font-size:12px;margin-top:5px">${escapeHtml(t.updatedAt||'-')}</div></td>
+      <td><div class="operate"><button class="btn small" onclick="editTask('${t.id}')">编辑</button><button class="btn small" onclick="toggleStatus('${t.id}')">${t.status==='enabled'?'停用':'启用'}</button><button class="btn small danger" onclick="confirmDelete('${t.id}')">删除</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+function escapeHtml(str){return String(str).replace(/[&<>'"]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));}
+function getContentTitle(t){const c=(t.copy||'').trim();return c?c.slice(0,18)+(c.length>18?'...':''):'未配置推送文案';}
+function openForm(){
+  document.getElementById('listPage').classList.add('hide');
+  document.getElementById('formPage').classList.remove('hide');
+  document.getElementById('formTitle').textContent='新增推送';
+  document.getElementById('pushForm').reset();
+  document.getElementById('taskId').value='';
+  document.getElementById('copyText').value='热门赛事，全程同步｜全球赛事，一站覆盖｜实时赔率变化｜盘口即时更新｜⚽体育新体验，尽在 U.GAME⚽';
+  clearImage(false);
+  selectRadio('pushType','join');
+  selectRadio('scheduleMode','once');
+  document.getElementById('taskStatus').checked=true;
+  document.querySelectorAll('.weekday').forEach(b=>b.classList.remove('active'));
+  updateTypeUI();updateScheduleUI();refreshOncePicker();updatePreview();window.scrollTo(0,0);
+}
+function backToList(){document.getElementById('formPage').classList.add('hide');document.getElementById('listPage').classList.remove('hide');renderList();window.scrollTo(0,0)}
+function selectRadio(name,value){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{r.checked=r.value===value});refreshRadioCards();}
+function refreshRadioCards(){document.querySelectorAll('.radio-card').forEach(card=>{const input=card.querySelector('input[type="radio"]'); if(input)card.classList.toggle('active',input.checked);});}
+function getRadio(name){const el=document.querySelector(`input[name="${name}"]:checked`);return el?el.value:''}
+document.addEventListener('change',function(e){if(e.target.matches('input[type="radio"]'))refreshRadioCards(); if(e.target.id==='taskStatus')document.getElementById('statusText').textContent=e.target.checked?'启用后按规则进行推送':'停用后不会触发推送';});
+function updateTypeUI(){
+  const type=getRadio('pushType');
+  document.getElementById('ruleJoin').classList.toggle('hide',type!=='join');
+  document.getElementById('ruleInterval').classList.toggle('hide',type!=='interval');
+  document.getElementById('ruleCustom').classList.toggle('hide',type!=='custom');
+  updatePreview();
+}
+function updateScheduleUI(){
+  const mode=getRadio('scheduleMode');
+  document.getElementById('onceFields').classList.toggle('hide',mode!=='once');
+  document.getElementById('dailyFields').classList.toggle('hide',mode!=='daily');
+  document.getElementById('weeklyFields').classList.toggle('hide',mode!=='weekly');
+  if(mode==='once')refreshOncePicker(document.getElementById('onceDateTime').value);
+}
+document.getElementById('weekdayBox').addEventListener('click',function(e){if(e.target.classList.contains('weekday'))e.target.classList.toggle('active');});
+function handleImageUpload(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(){setImage(reader.result)};reader.readAsDataURL(file);}
+function setImage(src){document.getElementById('imageData').value=src;const img=document.getElementById('imagePreview');img.src=src;img.style.display='block';document.getElementById('uploadPlaceholder').style.display='none';document.getElementById('imageTools').style.display='flex';updatePreview();}
+function clearImage(showToast){document.getElementById('imageData').value='';const img=document.getElementById('imagePreview');img.removeAttribute('src');img.style.display='none';document.getElementById('uploadPlaceholder').style.display='block';document.getElementById('imageTools').style.display='none';document.getElementById('imageInput').value='';updatePreview();if(showToast!==false)toast('已清除图片');}
+function useSampleImage(){setImage(window.SAMPLE_IMAGE);toast('已使用示例图');}
+function updatePreview(){
+  const text=document.getElementById('copyText').value||'';
+  document.getElementById('copyCount').textContent=text.length;
+}
+const uploadZone=document.getElementById('uploadZone');
+['dragenter','dragover'].forEach(ev=>uploadZone.addEventListener(ev,e=>{e.preventDefault();uploadZone.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>uploadZone.addEventListener(ev,e=>{e.preventDefault();uploadZone.classList.remove('drag')}));
+uploadZone.addEventListener('drop',e=>{const file=e.dataTransfer.files[0];if(file&&file.type.startsWith('image/')){const r=new FileReader();r.onload=()=>setImage(r.result);r.readAsDataURL(file);}});
+uploadZone.addEventListener('click',e=>{if(e.target===uploadZone)document.getElementById('imageInput').click()});
+function readForm(){
+  const type=getRadio('pushType');
+  const scheduleMode=getRadio('scheduleMode');
+  const rule= type==='join'?{mode:'join'}: type==='interval'?{mode:'interval'}:{mode:scheduleMode};
+  if(type==='custom'){
+    if(scheduleMode==='once'){refreshOncePicker(document.getElementById('onceDateTime').value);rule.datetime=document.getElementById('onceDateTime').value;}
+    if(scheduleMode==='daily')rule.time=document.getElementById('dailyTime').value;
+    if(scheduleMode==='weekly'){
+      rule.time=document.getElementById('weeklyTime').value;
+      rule.weekdays=[...document.querySelectorAll('.weekday.active')].map(b=>b.dataset.day);
+    }
+  }
+  return {id:document.getElementById('taskId').value||genId(),type,status:document.getElementById('taskStatus').checked?'enabled':'disabled',copy:document.getElementById('copyText').value.trim(),image:document.getElementById('imageData').value,rule,lastPush:'-',nextPush:'',creator:'xyyy',updatedAt:nowString()};
+}
+function validateTask(t){
+  if(!t.copy)return '请输入推送文案';
+  if(t.type==='custom'){
+    if(t.rule.mode==='once'&&!t.rule.datetime)return '请选择单次推送时间';
+    if(t.rule.mode==='once'&&onceTimeIsBeforeNow(t.rule.datetime))return '单次推送时间不能早于当前时间';
+    if(t.rule.mode==='daily'&&!t.rule.time)return '请选择每日推送时间';
+    if(t.rule.mode==='weekly'){
+      if(!t.rule.weekdays||!t.rule.weekdays.length)return '请选择每周推送星期';
+      if(!t.rule.time)return '请选择每周推送时间';
+    }
+  }
+  return '';
+}
+function saveTask(e){
+  e.preventDefault();
+  const t=readForm(); const err=validateTask(t); if(err){toast(err);return;}
+  t.nextPush=calcNextPush(t);
+  const idx=tasks.findIndex(x=>x.id===t.id);
+  if(idx>-1){t.lastPush=tasks[idx].lastPush||'-';tasks[idx]=t}else tasks.unshift(t);
+  saveStorage();toast('保存成功');backToList();
+}
+function editTask(id){
+  const t=tasks.find(x=>x.id===id); if(!t)return;
+  openForm();document.getElementById('formTitle').textContent='编辑推送';document.getElementById('taskId').value=t.id;document.getElementById('taskStatus').checked=t.status==='enabled';document.getElementById('statusText').textContent=t.status==='enabled'?'启用后按规则进行推送':'停用后不会触发推送';document.getElementById('copyText').value=t.copy||'';selectRadio('pushType',t.type||'join');updateTypeUI();if(t.image)setImage(t.image);else clearImage(false);
+  if(t.type==='custom'){
+    const r=t.rule||{};selectRadio('scheduleMode',r.mode||'once');updateScheduleUI();
+    if(r.mode==='once')refreshOncePicker(r.datetime||'');
+    if(r.mode==='daily')document.getElementById('dailyTime').value=r.time||'10:00';
+    if(r.mode==='weekly'){
+      document.getElementById('weeklyTime').value=r.time||'10:00';document.querySelectorAll('.weekday').forEach(b=>b.classList.toggle('active',(r.weekdays||[]).includes(b.dataset.day)));
+    }
+  }
+  updatePreview();
+}
+function toggleStatus(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.status=t.status==='enabled'?'disabled':'enabled';t.updatedAt=nowString();t.nextPush=calcNextPush(t);saveStorage();renderList();toast(t.status==='enabled'?'已启用':'已停用');}
+function confirmDelete(id){const t=tasks.find(x=>x.id===id);if(!t)return;openModal('删除推送配置',`确认删除该推送配置吗？删除后不可恢复。`,()=>{tasks=tasks.filter(x=>x.id!==id);saveStorage();renderList();toast('已删除');});}
+function openModal(title,body,ok){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;pendingAction=ok;document.getElementById('confirmModal').classList.add('show');}
+function closeModal(){document.getElementById('confirmModal').classList.remove('show');pendingAction=null;}
+document.getElementById('modalOkBtn').addEventListener('click',()=>{if(pendingAction)pendingAction();closeModal();});
+function toast(text){const el=document.getElementById('toast');el.textContent=text;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>el.classList.remove('show'),1800);}
+function tick(){const d=new Date();document.getElementById('nowText').textContent=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}（美东时间）`;}
+setInterval(tick,1000);
+loadTasks();renderList();updateTypeUI();updateScheduleUI();refreshOncePicker();updatePreview();tick();
+</script>
+</body>
+</html>
